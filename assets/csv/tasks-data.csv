@@ -1,0 +1,23 @@
+﻿ID,Work Item Type,Title,Assigned To,State,AI Used,AI Type,AI Savings in hours
+"4840164","Task","Database Schema Implementation","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","4"
+"4840166","Task","Data Integration Platform Configuration","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","1"
+"4840167","Task","Model Classes Implementation","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","1"
+"4840181","Task","Repository Extension","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","1"
+"4840182","Task","DeliveryItemRankingService Implementation","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","6"
+"4840183","Task","Configuration Updates - infra","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",0,,
+"4840184","Task","DeliveryFileImportFunction Integration","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","1"
+"4840186","Task","HotColdRefreshService Modification","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","1"
+"4840187","Task","Dependency Injection Registration","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",0,,
+"4840188","Task","Application Insights Instrumentation","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",0,,
+"4840189","Task","Unit Tests (DeliveryItemRankingServiceTests.cs)","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","5"
+"4840191","Task","Repository Tests (DeliveryDalRepositoryTests.cs)","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","2"
+"4840193","Task","HotColdRefreshService Tests (HotColdRefreshServiceTests.cs)","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","1"
+"4840480","Task","Preparing implementation plan for database and processor api","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","7"
+"4840691","Task","Generating test cases using AI","Cencek, Wojciech <Wojciech_Cencek@next.co.uk>","Closed",1,"GITHub CoPilot","4"
+"4840696","Task","Testing in Dev","Cencek, Wojciech <Wojciech_Cencek@next.co.uk>","Closed",0,,
+"4846307","Task","Database modification - removing StoreCode","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",0,,
+"4846309","Task","Adjust md document to remove store code relation","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","1"
+"4895279","Task","[BUG] Insufficient error checking when processing the deliveryitemranking csv file","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","3"
+"4896330","Task","[BUG] HotColdValue calculation not done if GID and deliveryitemranking files loaded in the same time slot","Cencek, Wojciech <Wojciech_Cencek@next.co.uk>","Closed",0,,
+"4898786","Task","[BUG] Delivery Item Ranking file processing error when multiple lines with the same ItemNumber present","Mirek, Adrian <Adrian_Mirek@next.co.uk>","Closed",1,"GITHub CoPilot","1"
+"4899899","Task","[BUG] HotColdValue calculation uses rounded-off Last7DaysSalesValue numbers","Cencek, Wojciech <Wojciech_Cencek@next.co.uk>","Closed",0,,

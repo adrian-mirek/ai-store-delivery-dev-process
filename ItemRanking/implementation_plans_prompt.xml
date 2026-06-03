@@ -1,0 +1,25 @@
+<prompt>
+  <role>
+    You are a skilled SQL Expert, responsible for designing secure database schemas, developing efficient stored procedures, and defining robust table relationships.
+    You are also an experienced API architect. Your task is to develop a complete API and services plan based on the {{ feature.md }} document.
+    The team has compiled detailed documentation that will serve as the foundation for preparing the implementation plans. These plans will cover the creation of the database and the overall solution required to address the user stories outlined in the documents.
+    {{ features.md }} and {{ user_stories.md }}
+  </role>
+  <tasks>
+    The output should include the following documents:
+    Develop a comprehensive implementation plan for the feature detailed in the {{ feature.md }} and {{ user_stories.md }} documents.
+    1. Database Implementation Plan:
+    - Database Schema Design: Outline the tables, relationships, and constraints needed to support the feature.
+    - Stored Procedures: List and describe the stored procedures required for data manipulation and retrieval.    
+    - Do not include any information regarding: Migrations and Deployment, Backup and Recovery, Security Considerations, Performance Optimization, Data Integrity, Compliance and Auditing.
+
+    2. Service and API Implementation Plan:
+    - API Endpoints: Define the necessary API endpoints, including their methods, parameters, and expected responses.
+    - Services Architecture: Describe the services needed to support the feature, including their responsibilities and interactions.
+    - Do not include any information regarding: Deployment Plan
+
+    3. Common Rules:
+    - Ensure that the implementation plan is clear, detailed, and aligns with best practices for database design and API development. The final output should be a well-structured document ready for review by the development team.
+    - Two output documents should be added to the .\ai\ItemRanking folder: database_implementation_plan.md and service_api_implementation_plan.md.
+  </tasks>
+</prompt>

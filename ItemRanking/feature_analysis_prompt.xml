@@ -1,0 +1,81 @@
+<prompt>
+	<role>
+	You are an experienced product manager whose task is to help create a comprehensive data to create new user stories based on the provided information. Your goal is to generate a list of questions and recommendations that will be used in subsequent prompting to create a complete list of user stories.
+	</role>
+	<information>
+		<description>
+		As a Delivery system
+		I want the Last7DaysSalesValue from the Item Ranking file
+		So it can be used within the calculation of Hot/Cold values of tub/sets
+		</description>
+		<requirements>
+			<requirement>
+				Given the Delivery system
+				When needed*
+				Then the following data is collected from the Item Ranking file
+					 and retained in the Delivery project
+				store code (store number)
+				item number
+				Last7DaysSales
+				*Confirm how often the ItemRanking file is loaded to help decide how often this data needs to be collected
+			</requirement>
+			<requirement>
+				Given the Delivery system 
+				When a GI/GID file is loaded
+				Then the Last7DaysSales data is requested and retained for the items in the file
+			</requirement>
+		</requirements>
+		<details>
+			<itemranking_structure>
+			| 0 | Item Number               |
+			| 1 | Last Seven Day Sale Unit  |
+			| 2 | Last Seven Day Sale Value |
+			| 3 | Future Season End Unit    | 
+			| 4 | Future Season End Value   | 
+			| 5 | Next Season End Unit      |
+			| 6 | Next Season End Value     |
+			</itemranking_structure>
+			<itemranking_example>
+			AA1363,0,0.00,283,6792.00,150,3600.00
+			AA1400,0,0.00,22,792.00,0,0.00
+			</itemranking_example>			
+			<delivery_requirements>
+				<data_integration>
+          The import of all item lines for delivery is affected by two critical files: data.ItemRank.2512140047162.zip, trigger.ItemRank.2512140047162.trigger
+          This process should be implemented as the standard process of integrate data from dataintstinsdeveuw (dev environment) storage account to the tp-partner storage account nxdataintprstinsdeveuw. From the development perspective it's needed to add the new file map record to two files branch.ItemRank and data.ItemRank. Example {{ #DevelopmentSetupData }}
+          Once the data are uploaded to the dataintstinsdeveuw finally should be moved to the tp-partner storage account nxdataintprstinsdeveuw to the container deliveryitemranking - two seperate files should be moved to this container.
+          From the architecture perspective the mechanism is done, nothing else should be taken into consideration. The mechanism is done for moving blob from datainst storage account to tp partner storage account nx-datainst.
+          It's needed to prepare the file map record for these two files in the development setup data. Example {{ #DevelopmentSetupData }}. The description of these mechanism is described in order to have a full picture of the process and for the description of user stories and test cases.
+        </data_integration>
+				<integration_service>
+          1. One file data.ItemRank from the container deliveryitemranking should be imported to the delivery database.                   
+          2. This process should be started and ended before processing blob data {{ DeliveryFileImport function }}
+          3. A new service DeliveryItemRankingService.cs is required. It needs to be added to the project Delivery.Processor.API. This service should prepare a mechanism to read blob from the blob container and map the output of these two files to the designed model to be ready for generating data as an input to the repository and finally the data should be saved to the database. This service should contain all logic required for preparing the process for saving data to the table.
+          4. A seperate repository is required.
+          <recommendation>prepare a recommendation for this solution, how this data should be stored in the database? I think one table delivery.StoreItemRanking (StoreCode, ItemNumber, Last7DaysSalesValue) should be appropriate.</recommendation>
+				</integration_service>
+				<database>
+          1. Add a new table delivery.ItemRanking for saving all item numbers. My proposal is to add one table delivery.ItemRanking (ItemNumber, Last7DaysSalesValue, BlobName)
+          2. Preparing a new stored procedure and types for saving data delivery.InsertOrUpdateItemRanking.sql to the delivery database - batch insert. Template {{ }}
+          3. Preparing a new stored procedure for getting Item Ranking for all item numbers.
+        </database>
+				<delivery_file_import_function>
+					1. Modify calculate hot cold value to get the list of all Last7DaysSalesValue for all item numbers from repository {{ source of calculate value method }}
+				</delivery_file_import_function>
+			</delivery_requirements>
+			<links>		
+			</links>
+		</details>
+		<concern>
+		</concern>
+		<questions>
+      Based on your analysis, generate a list of 5 questions and recommendations in a combined form (question + recommendation).
+      Continue this process, generating new questions and recommendations based on the user's responses, until the user explicitly asks for a summary.
+      Remember to focus on clarity, relevance, and accuracy of results. Do not include any additional comments or explanations beyond the specified output format.
+      Analytical work should be done in the thinking block. The final output should consist solely of questions and recommendations.
+      The final result should be used for generating the final document - called feature_analysis.md saved to the .\ai\itemranking folder - that will be used to generate the user stories according to the final document.
+      The sole requirement is to prepare the feature_analysis.md document, which must contain a proposed solution based on the information provided. No modifications to the existing code are necessary or permitted as this is not the appropriate stage for implementation.
+      Before you genererate a final document feature_analysis.md, think about the provided information and analyze it carefully. If needed generate the questions and recommendations
+    </questions>
+	</information>
+</prompt>

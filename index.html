@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en-GB">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>AI Delivery Workflow Presentation</title>
+  <meta name="description" content="Executive presentation: AI-assisted development workflow using Item Ranking as an example." />
+  <link rel="stylesheet" href="assets/css/styles.css" />
+</head>
+<body>
+  <div class="background-aura" aria-hidden="true"></div>
+  <header class="topbar">
+    <div class="brand">
+      <img class="brand-logo" src="assets/images/nextimage.png" alt="Company logo" />
+      <span class="brand-dot"></span>
+      <span>AI Development Storyboard</span>
+    </div>
+    <nav class="topnav" aria-label="Slide navigation">
+      <a href="#slide-summary">Summary</a>
+      <a href="#slide-business-case">Business Case</a>
+      <a href="#slide-flow">Flow</a>
+      <a href="#slide-value">Value</a>
+    </nav>
+    <button id="print-btn" class="button ghost" type="button">Export PDF</button>
+  </header>
+
+  <main id="slides" class="slides" tabindex="-1">
+    <section class="slide hero" id="slide-summary" data-title="Executive Summary">
+      <p class="eyebrow">For Leadership Review</p>
+      <h1>How AI Accelerates Store Delivery Development Process</h1>
+      <div class="hero-grid">
+        <article class="info-card reveal">
+          <h3>1. AI Workflow Overview</h3>
+          <p>
+            This presentation demonstrates a repeatable AI workflow from requirement prompts to actionable delivery plans and user stories,
+            using Item Ranking integration with the Delivery Process as the Pilot Application of AI-Driven Development.
+          </p>
+        </article>
+        <article class="info-card reveal">
+          <h3>2. AI Tools</h3>
+          <ul>
+            <li>GitHub Copilot,</li>
+            <li>Claude Sonnet 4.5,</li>
+            <li>GPT-5 mini,</li>
+            <li>Gemini</li>
+          </ul>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-business-case" data-title="Business Case">
+      <p class="eyebrow">Why This Matters</p>
+      <h2>Business Context for AI-Driven Automation</h2>
+      <div class="hero-grid">
+        <article class="info-card reveal">
+          <h3>1. Business problem</h3>
+          <p>The current delivery process needs higher quality, faster readiness, and better pace across development and testing to release features confidently in existing solutions. Teams need a repeatable path from requirements to implementation and validation without losing consistency between artifacts.</p>
+        </article>
+        <article class="info-card reveal">
+          <h3>2. Current condition</h3>
+          <p>Implementation plans and test plans are prepared manually, making outcomes slower, less consistent, and dependent on individual experience. This also weakens traceability between requirement analysis, technical planning, and test scope.</p>
+        </article>
+        <article class="info-card reveal">
+          <h3>3. Goal</h3>
+          <p>Automate the end-to-end planning flow with AI so structured prompts generate feature analysis, implementation plans, user stories, and test-plan inputs in one connected chain. Standardized outputs are then prepared for Azure DevOps automation to reduce manual handoffs and rework.</p>
+        </article>
+        <article class="info-card reveal">
+          <h3>4. Result</h3>
+          <p>The workflow increases implementation and test-preparation pace while reducing the time required to produce delivery-ready plans and test assets. It also improves readiness with clearer documentation and a well-structured, auditable feature solution from analysis to execution.</p>
+        </article>
+      </div>
+    </section>
+
+    <section class="slide" id="slide-flow" data-title="AI Workflow">
+      <p class="eyebrow">End-To-End Lifecycle</p>
+      <h2>Process Flow of AI-Assisted Development</h2>
+      <div class="flow-wrap reveal" aria-label="AI workflow flowchart">
+        <div class="flow-node">
+          <h3>1. Prompt</h3>
+          <p>Define requirements in structured XML.</p>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="flow-node">
+          <h3>2. Analysis</h3>
+          <p>Generate feature analysis with solution options.</p>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="flow-node">
+          <h3>3. Plan</h3>
+          <p>Create service/API implementation roadmap.</p>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="flow-node">
+          <h3>4. Stories</h3>
+          <p>Produce user stories and delivery tasks.</p>
+        </div>
+        <span class="flow-arrow" aria-hidden="true">→</span>
+        <div class="flow-node">
+          <h3>5. DevOps</h3>
+          <p>Automate work-item creation for Azure DevOps.</p>
+        </div>
+      </div>
+      <div class="timeline reveal" id="timeline"></div>
+    </section>
+
+    <div class="doc-modal" id="doc-modal" hidden aria-hidden="true">
+      <div class="doc-modal-backdrop" data-close-modal="true"></div>
+      <section class="doc-modal-panel" role="dialog" aria-modal="true" aria-labelledby="doc-modal-title">
+        <div class="doc-modal-header">
+          <div>
+            <p class="eyebrow" id="doc-modal-kind">Document</p>
+            <h2 id="doc-modal-title">Document title</h2>
+          </div>
+          <button class="button ghost" type="button" data-close-modal="true">Close</button>
+        </div>
+        <p class="doc-modal-path" id="doc-modal-path"></p>
+        <div class="doc-modal-highlights" id="doc-modal-highlights"></div>
+        <div class="doc-modal-actions">
+          <a class="button" id="doc-modal-link" href="#" target="_blank" rel="noreferrer">Open full document</a>
+        </div>
+      </section>
+    </div>
+
+    <div class="doc-modal" id="list-modal" hidden aria-hidden="true">
+      <div class="doc-modal-backdrop" data-close-list-modal="true"></div>
+      <section class="doc-modal-panel list-modal-panel" role="dialog" aria-modal="true" aria-labelledby="list-modal-title">
+        <div class="doc-modal-header">
+          <div>
+            <p class="eyebrow" id="list-modal-kind">Azure DevOps</p>
+            <h2 id="list-modal-title">Items</h2>
+          </div>
+          <button class="button ghost" type="button" data-close-list-modal="true">Close</button>
+        </div>
+        <div class="list-modal-body" id="list-modal-body"></div>
+      </section>
+    </div>
+
+    <div class="doc-modal" id="video-modal" hidden aria-hidden="true">
+      <div class="doc-modal-backdrop" data-close-video-modal="true"></div>
+      <section class="doc-modal-panel video-modal-panel" role="dialog" aria-modal="true" aria-labelledby="video-modal-title">
+        <div class="doc-modal-header">
+          <div>
+            <p class="eyebrow">Test Cases</p>
+            <h2 id="video-modal-title">Test Cases — Demo Video</h2>
+          </div>
+          <button class="button ghost" type="button" data-close-video-modal="true">Close</button>
+        </div>
+        <div class="video-modal-body">
+          <video id="video-modal-player" class="video-player" controls preload="metadata">
+            <source src="assets/videos/test_cases.mp4" type="video/mp4" />
+            Your browser does not support the video element.
+          </video>
+        </div>
+      </section>
+    </div>
+
+    <section class="slide" id="slide-value" data-title="Measured Value">
+      <p class="eyebrow">Benefits</p>
+      <h2>AI Workflow Value Snapshot</h2>
+      <div class="value-layout value-layout--full">
+        <article class="info-card reveal">
+          <h3>Highlights</h3>
+          <ul class="benefits-list">
+            <li class="benefits-item">
+              <span>22 created tasks</span>
+              <button class="button ghost" type="button" data-list-modal="tasks">View All Tasks</button>
+            </li>
+            <li class="benefits-item">
+              <span>20 created test cases</span>
+              <button class="button ghost" type="button" data-list-modal="test-cases">View Test Cases</button>
+              <button class="button ghost" type="button" id="play-test-cases-video-btn">&#9654; Play Video</button>
+            </li>
+            <li class="benefits-item benefits-item--docs">
+              <span>3 md documents as source of documentation</span>
+              <ul class="benefits-docs">
+                <li>feature_analysis.md</li>
+                <li>service_api_implementation_plan.md</li>
+                <li>user_stories.md</li>
+              </ul>
+            </li>
+            <li class="benefits-item">
+              <span>Database changes
+                <span class="inline-stat">
+                  <span class="diff-files">(5 files changed)</span>
+                  <span class="diff-add">+238</span>
+                </span>
+              </span>
+              <button class="button ghost btn-green" type="button" data-list-modal="db-changes">View Changes</button>
+            </li>
+            <li class="benefits-item">
+              <span>Processor API changes
+                <span class="inline-stat">
+                  <span class="diff-files">(38 files changed)</span>
+                  <span class="diff-del">-114</span>
+                  <span class="diff-add">+4446</span>
+                </span>
+              </span>
+              <button class="button ghost btn-red" type="button" data-list-modal="api-changes">View Changes</button>
+            </li>
+            <li>AI Savings: <strong>39 hours</strong></li>
+          </ul>
+        </article>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <p>Use Left/Right arrow keys to navigate. Optimised for desktop and mobile.</p>
+    <div class="controls">
+      <button id="prev-btn" class="button" type="button">Previous</button>
+      <button id="next-btn" class="button" type="button">Next</button>
+    </div>
+  </footer>
+
+  <script src="assets/js/charts.js"></script>
+  <script src="assets/js/app.js"></script>
+</body>
+</html>
