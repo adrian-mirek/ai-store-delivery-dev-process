@@ -33,7 +33,7 @@
     {
       step: "Artifact 7",
       title: "db_service_api_implementation_plan.md",
-      text: "Detailed implementation plan drives AI code generation for database and service/API layers, transforming analysis into development-ready engineering work."
+      text: "Detailed implementation plan drives AI code generation for database and service/API layers, transforming analysis into implementation-ready engineering work."
     }    
   ];
 
