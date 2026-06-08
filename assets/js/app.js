@@ -370,7 +370,7 @@
 
     var mainGroupDesc = document.createElement("p");
     mainGroupDesc.className = "timeline-main-group-desc";
-    mainGroupDesc.textContent = "xml: small human generated prompt files, md: ai generated markdown documents.";
+    mainGroupDesc.textContent = "xml: small human-generated prompt files, md: AI-generated markdown documents.";
 
     var mainList = document.createElement("div");
     mainList.className = "timeline-main-list";
