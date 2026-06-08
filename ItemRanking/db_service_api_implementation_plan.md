@@ -1,4 +1,369 @@
-﻿# Service and API Implementation Plan: Item Ranking Integration
+﻿# Database Implementation Plan: Item Ranking Integration
+
+**Document Version**: 2.0  
+**Date**: 2025-12-30  
+**Author**: AI Generated, Updated per requirements  
+**Status**: Ready for Implementation  
+**Change Log**:
+- **Date**: 2025-12-29: Removed StoreCode requirement, simplified to item-level only data model
+
+## 1. Scope
+Implements a database-backed Item Ranking integration for Hot/Cold value calculations. This plan introduces a table-valued type, a storage table with constraints and index, and stored procedures for upsert and retrieval.
+
+**Key Changes from v1.0**:
+- Removed `StoreCode` column from all objects
+- Simplified to single record per `ItemNumber`
+- Removed store-specific indexes and queries
+- Single retrieval method returns all item rankings (no store filtering)
+
+References:
+- Feature: .ai/ItemRanking/feature_analysis.md
+- User stories: .ai/ItemRanking/user_stories.md
+
+---
+
+## 2. Objects To Create (in order)
+1. Schema `delivery` (if not already present)
+2. Type `delivery.ItemRankingType`
+3. Table `delivery.ItemRanking`
+4. Index `delivery.IX_ItemRanking_ItemNumber`
+5. Stored procedure `delivery.InsertOrUpdateItemRanking`
+6. Stored procedure `delivery.GetItemRanking`
+
+---
+
+## 3. Logical Model
+- Single current record per `ItemNumber` (no store-level granularity)
+- No history (latest wins) per business requirements
+- Optimized for full-table retrieval used by Hot/Cold calculation (in-memory dictionary lookup)
+- Simplified data model reduces storage and complexity
+
+---
+
+## 4. DDL Specification
+
+### 4.1 User-Defined Table Type
+```sql
+CREATE TYPE [delivery].[ItemRankingType] AS TABLE
+(
+    [ItemNumber]          CHAR(6)      NOT NULL,
+    [Last7DaysSalesValue] DECIMAL(9,2) NOT NULL,
+    [BlobName]            VARCHAR(40)  NOT NULL
+);
+```
+
+**Design Notes**:
+- Removed `StoreCode` column
+- Simplified to 3 columns for batch upsert operations
+- `BlobName` used for audit trail of blob name during import
+
+### 4.2 Table
+```sql
+CREATE TABLE [delivery].[ItemRanking]
+(
+    [ItemRankingId]       BIGINT IDENTITY(1,1) NOT NULL,
+    [ItemNumber]          CHAR(6)              NOT NULL,
+    [Last7DaysSalesValue] DECIMAL(9,2)         NOT NULL,
+    [ImportTimestamp]     DATETIME2            NOT NULL DEFAULT SYSUTCDATETIME(),
+    [BlobName]            VARCHAR(40)          NOT NULL,
+    [CreatedAt]           DATETIME2            NOT NULL DEFAULT SYSUTCDATETIME(),
+    [UpdatedAt]           DATETIME2            NOT NULL DEFAULT SYSUTCDATETIME(),
+
+    CONSTRAINT [PK_ItemRanking] PRIMARY KEY CLUSTERED ([ItemRankingId]),
+    CONSTRAINT [UQ_ItemRanking_ItemNumber] UNIQUE ([ItemNumber])
+);
+```
+
+**Design Decisions**:
+- **Table renamed**: `delivery.ItemRanking` (was `delivery.StoreItemRanking`)
+- **Single-record per Item**: UNIQUE constraint on `ItemNumber` ensures only latest ranking persists
+- **No StoreCode**: Removed entirely from schema
+- **No historical tracking**: Simplifies queries and reduces storage (per requirements)
+- **Audit fields**: `ImportTimestamp`, `BlobName`, `CreatedAt`, `UpdatedAt` retained for troubleshooting
+- **Primary key**: Surrogate key `ItemRankingId` for flexibility
+
+### 4.3 Nonclustered Index
+```sql
+CREATE NONCLUSTERED INDEX [IX_ItemRanking_ItemNumber] 
+ON [delivery].[ItemRanking] ([ItemNumber])
+INCLUDE ([Last7DaysSalesValue]);
+```
+
+**Design Notes**:
+- **Covering index**: Includes `Last7DaysSalesValue` for query optimization
+- **Unique constraint backup**: Supports unique constraint and lookup queries
+- **Purpose**: Optimizes dictionary lookup pattern in HotCold calculations
+
+---
+
+## 5. Stored Procedures
+
+### 5.1 Upsert Item Rankings
+**Name**: `delivery.InsertOrUpdateItemRanking`  
+**Purpose**: Batch upsert from TVP; refreshes `ImportTimestamp` and `UpdatedAt`, sets latest `BlobName`.
+
+```sql
+CREATE PROCEDURE [delivery].[InsertOrUpdateItemRanking]
+    @Data [delivery].[ItemRankingType] READONLY
+AS
+BEGIN TRY
+    SET NOCOUNT ON;
+    SET XACT_ABORT ON;
+
+    BEGIN TRAN;
+
+    -- Use temp table for MERGE performance
+    DROP TABLE IF EXISTS #ItemRanking;
+    CREATE TABLE #ItemRanking
+    (
+        [ItemNumber]          CHAR(6)      NOT NULL,
+        [Last7DaysSalesValue] DECIMAL(9,2) NOT NULL,
+        [BlobName]            VARCHAR(40)  NOT NULL
+    );
+
+    INSERT INTO #ItemRanking
+    SELECT [ItemNumber], [Last7DaysSalesValue], [BlobName]
+    FROM @Data;
+
+    -- MERGE on ItemNumber only (no StoreCode)
+    MERGE [delivery].[ItemRanking] AS target
+    USING #ItemRanking AS source
+       ON target.[ItemNumber] = source.[ItemNumber]
+    WHEN MATCHED THEN
+        UPDATE SET
+            target.[Last7DaysSalesValue] = source.[Last7DaysSalesValue],
+            target.[BlobName]            = source.[BlobName],
+            target.[ImportTimestamp]     = SYSUTCDATETIME(),
+            target.[UpdatedAt]           = SYSUTCDATETIME()
+    WHEN NOT MATCHED BY TARGET THEN
+        INSERT ([ItemNumber], [Last7DaysSalesValue], [BlobName], [ImportTimestamp], [CreatedAt], [UpdatedAt])
+        VALUES (source.[ItemNumber], source.[Last7DaysSalesValue], source.[BlobName], SYSUTCDATETIME(), SYSUTCDATETIME(), SYSUTCDATETIME());
+
+    COMMIT TRAN;
+END TRY
+BEGIN CATCH
+    IF XACT_STATE() <> 0 ROLLBACK TRAN;
+    THROW;
+END CATCH;
+```
+
+**Key Changes**:
+- Removed `StoreCode` from all operations
+- MERGE condition simplified to `ItemNumber` only
+- INSERT statement removed `StoreCode` column
+- Batch size recommendation: 10,000 rows per call (configurable in application)
+
+**Notes**:
+- TVP cardinality hints not required in this pattern
+- Transaction ensures atomicity for batch operations
+- Error handling with `XACT_ABORT` for clean rollback
+
+### 5.2 Get All Item Rankings
+**Name**: `delivery.GetItemRanking`  
+**Purpose**: Fast retrieval of all item rankings for Hot/Cold calculation (application builds in-memory dictionary)
+
+```sql
+CREATE PROCEDURE [delivery].[GetItemRanking]
+AS
+BEGIN
+    SET NOCOUNT ON;
+
+    SELECT 
+        [ItemNumber],
+        [Last7DaysSalesValue]
+    FROM [delivery].[ItemRanking];
+END
+```
+
+**Key Changes**:
+- **No store parameter**: Removed `@StoreCode` parameter entirely
+- **Returns all items**: Application layer builds dictionary for lookups
+- **Simplified query**: No WHERE clause, returns full dataset
+- **Performance**: Expected dataset size ~50k items, acceptable for in-memory processing
+
+**Usage Pattern**:
+```csharp
+// Application layer
+var itemRankings = await _repository.GetItemRankingAsync();
+var itemRankingDict = itemRankings.ToDictionary(ir => ir.ItemNumber, ir => ir.Last7DaysSalesValue);
+
+// Fast lookup in HotCold calculation
+foreach (var item in container.Items)
+{
+    if (itemRankingDict.TryGetValue(item.ItemNumber, out var salesValue))
+    {
+        container.HotColdValue += (int)salesValue;
+    }
+}
+```
+
+---
+
+## 6. Migration Path (if upgrading from v1.0)
+
+**If `delivery.StoreItemRanking` exists**:
+
+```sql
+-- Step 1: Create new objects
+-- (Execute sections 4.1, 4.2, 4.3, 5.1, 5.2 above)
+
+-- Step 2: Migrate data (aggregate by ItemNumber, take MAX sales value)
+INSERT INTO [delivery].[ItemRanking] 
+    ([ItemNumber], [Last7DaysSalesValue], [BlobName], [ImportTimestamp], [CreatedAt], [UpdatedAt])
+SELECT 
+    [ItemNumber],
+    MAX([Last7DaysSalesValue]) AS [Last7DaysSalesValue],
+    MAX([BlobName]) AS [BlobName],
+    MAX([ImportTimestamp]) AS [ImportTimestamp],
+    MIN([CreatedAt]) AS [CreatedAt],
+    MAX([UpdatedAt]) AS [UpdatedAt]
+FROM [delivery].[StoreItemRanking]
+GROUP BY [ItemNumber];
+
+-- Step 3: Verify migration
+SELECT 
+    (SELECT COUNT(*) FROM [delivery].[StoreItemRanking]) AS OldRowCount,
+    (SELECT COUNT(DISTINCT ItemNumber) FROM [delivery].[StoreItemRanking]) AS ExpectedNewRowCount,
+    (SELECT COUNT(*) FROM [delivery].[ItemRanking]) AS ActualNewRowCount;
+
+-- Step 4: Drop old objects (after application deployment)
+DROP PROCEDURE IF EXISTS [delivery].[GetItemRankingByStoreCode];
+DROP INDEX IF EXISTS [IX_StoreItemRanking_StoreCode] ON [delivery].[StoreItemRanking];
+DROP TABLE IF EXISTS [delivery].[StoreItemRanking];
+-- Note: Keep old ItemRankingType if other objects reference it
+```
+
+---
+
+## 7. Test Plan (DB)
+
+### 7.1 Unit Tests
+- [ ] **Upsert inserts new rows**: Insert 1000 new item rankings, verify row count
+- [ ] **Upsert updates existing rows**: Re-insert same items with different values, verify updates
+- [ ] **Unique constraint enforcement**: Attempt duplicate ItemNumber insert, verify error
+- [ ] **Transaction rollback**: Force error mid-batch, verify no partial commits
+- [ ] **Null handling**: Verify required fields enforce NOT NULL constraints
+
+### 7.2 Performance Tests
+- [ ] **Batch insert performance**: 10,000 rows < 2 seconds
+- [ ] **Full retrieval performance**: GetItemRanking returns 50,000 rows < 500ms
+- [ ] **Index effectiveness**: Verify index seek on ItemNumber queries (execution plan)
+- [ ] **Concurrent access**: Multiple simultaneous upserts handle locking correctly
+
+### 7.3 Integration Tests
+- [ ] **Application layer integration**: Repository calls succeed with valid data
+- [ ] **Error propagation**: Database errors surface to application layer
+- [ ] **Blob name tracking**: Verify BlobName updates correctly on re-import
+
+---
+
+## 8. Operational Monitoring
+
+### 8.1 Performance Metrics
+- **Row count growth**: Monitor table size (alert if > 100k unexpected items)
+- **Query performance**: Track `GetItemRanking` execution time (baseline: < 500ms)
+- **Upsert duration**: Track batch insert times (baseline: < 2s per 10k rows)
+- **Index fragmentation**: Monitor and rebuild if > 30%
+
+### 8.2 Error Monitoring
+- **Deadlocks**: Alert on deadlock occurrences (should be zero with current design)
+- **Constraint violations**: Track unique constraint violation attempts
+- **Timeout errors**: Alert if upsert or retrieval times out
+- **Transaction rollbacks**: Monitor rollback frequency
+
+### 8.3 Alerting Rules
+1. **Critical**: No data imports in last 48 hours (check `ImportTimestamp`)
+2. **Critical**: `GetItemRanking` failure rate > 1%
+3. **Warning**: Row count change > 50% day-over-day
+4. **Info**: Index fragmentation > 30%
+
+---
+
+## 9. Rollback Strategy
+
+**If deployment fails**:
+
+```sql
+-- Emergency rollback (if needed)
+DROP PROCEDURE IF EXISTS [delivery].[GetItemRanking];
+DROP PROCEDURE IF EXISTS [delivery].[InsertOrUpdateItemRanking];
+DROP INDEX IF EXISTS [IX_ItemRanking_ItemNumber] ON [delivery].[ItemRanking];
+DROP TABLE IF EXISTS [delivery].[ItemRanking];
+DROP TYPE IF EXISTS [delivery].[ItemRankingType];
+
+-- Restore v1.0 objects if backed up
+-- (Application must be rolled back simultaneously)
+```
+
+---
+
+## 10. Success Criteria
+
+- [ ] All database objects created successfully in DEV/TEST/PROD
+- [ ] Unit tests pass with 100% success rate
+- [ ] Performance tests meet baseline targets
+- [ ] Application integration tests succeed
+- [ ] No errors in SQL Server logs related to new objects
+- [ ] Application Insights shows successful database operations
+
+---
+
+## 11. Appendix
+
+### 11.1 SQL Script Execution Order
+
+```sql
+-- Script 1: Create Type
+-- File: 001_Create_ItemRankingType.sql
+CREATE TYPE [delivery].[ItemRankingType] AS TABLE (/* ... */);
+GO
+
+-- Script 2: Create Table
+-- File: 002_Create_ItemRanking_Table.sql
+CREATE TABLE [delivery].[ItemRanking] (/* ... */);
+GO
+
+-- Script 3: Create Index
+-- File: 003_Create_IX_ItemRanking_ItemNumber.sql
+CREATE NONCLUSTERED INDEX [IX_ItemRanking_ItemNumber] /* ... */;
+GO
+
+-- Script 4: Create Upsert Proc
+-- File: 004_Create_InsertOrUpdateItemRanking_Proc.sql
+CREATE PROCEDURE [delivery].[InsertOrUpdateItemRanking] /* ... */;
+GO
+
+-- Script 5: Create Retrieval Proc
+-- File: 005_Create_GetItemRanking_Proc.sql
+CREATE PROCEDURE [delivery].[GetItemRanking] /* ... */;
+GO
+```
+
+### 11.2 Estimated Storage Requirements
+
+**Assumptions**:
+- 50,000 unique items
+- Row size: ~80 bytes (6 + 9 + 8 + 20 + 8 + 8 + overhead)
+- Index size: ~30 bytes per row
+
+**Calculations**:
+- Table data: 50,000 × 80 bytes = ~4 MB
+- Index data: 50,000 × 30 bytes = ~1.5 MB
+- **Total**: ~6 MB (negligible storage impact)
+
+### 11.3 Glossary
+
+| Term | Definition |
+|------|------------|
+| **Item-level data** | Data stored per ItemNumber without store-specific granularity |
+| **TVP** | Table-Valued Parameter - SQL Server feature for batch operations |
+| **MERGE** | SQL statement combining INSERT/UPDATE in single operation |
+| **Covering index** | Index including all columns needed for query (avoids table lookup) |
+| **Upsert** | Insert or Update - idempotent operation for data synchronization |
+
+---
+
+# Service and API Implementation Plan: Item Ranking Integration
 
 **Document Version**: 2.1  
 **Date**: 2025-01-03  

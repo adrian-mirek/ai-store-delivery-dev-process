@@ -8,33 +8,33 @@
     {
       step: "Artifact 2",
       title: "feature_analysis.md",
-      text: "AI-generated analysis describes architecture, data flow, and business rationale."
+      text: "AI-generated analysis describes architecture, data flow, and business rationale, with access to the target repository required for accurate results."
     },
     {
       step: "Artifact 3",
+      title: "workitems_prompt.xml",
+      text: "Prompt aligns story generation to analysis and plan decisions."
+    },
+    {
+      step: "Artifact 4",
+      title: "workitems.md",
+      text: "User stories and tasks prepared for Azure DevOps automation."
+    },
+    {
+      step: "Artifact 5",
+      title: "Execution-ready test plans prepared for Azure DevOps automation.",
+      text: "Test cases are generated automatically in Azure DevOps using a PowerShell script."
+    },
+    {
+      step: "Artifact 6",
       title: "implementation_plans_prompt.xml",
       text: "Prompt defines implementation planning format and delivery sequencing."
     },
     {
-      step: "Artifact 4",
-      title: "service_api_implementation_plan.md",
-      text: "Detailed service/API plan translates analysis into actionable engineering work."
-    },
-    {
-      step: "Artifact 5",
-      title: "user_stories_prompt.xml",
-      text: "Prompt aligns story generation to analysis and plan decisions."
-    },
-    {
-      step: "Artifact 6",
-      title: "user_stories.md",
-      text: "Execution-ready stories and tasks prepared for Azure DevOps automation."
-    },
-    {
       step: "Artifact 7",
-      title: "PowerShell script",
-      text: "Execution-ready test plans prepared for Azure DevOps automation."
-    }
+      title: "db_service_api_implementation_plan.md",
+      text: "Detailed implementation plan drives AI code generation for database and service/API layers, transforming analysis into development-ready engineering work."
+    }    
   ];
 
   var docsData = [
@@ -134,8 +134,8 @@
     },
     {
       kind: "Plan Markdown",
-      title: "service_api_implementation_plan.md",
-      source: "ItemRanking/service_api_implementation_plan.md",
+      title: "db_service_api_implementation_plan.md",
+      source: "ItemRanking/db_service_api_implementation_plan.md",
       highlights: [
         {
           label: "Database Plan",
@@ -164,12 +164,12 @@
     },
     {
       kind: "Prompt XML",
-      title: "user_stories_prompt.xml",
-      source: "ItemRanking/user_stories_prompt.xml",
+      title: "workitems_prompt.xml",
+      source: "ItemRanking/workitems_prompt.xml",
       highlights: [
         {
           label: "Role",
-          text: "Experienced AI assistant generating user stories based solely on feature_analysis.md — developed collaboratively with Development, QA, DevOps, and Architecture teams."
+          text: "Experienced AI assistant generating workitems based solely on feature_analysis.md — developed collaboratively with Development, QA, DevOps, and Architecture teams."
         },
         {
           label: "Information",
@@ -201,8 +201,8 @@
     },
     {
       kind: "Stories Markdown",
-      title: "user_stories.md",
-      source: "ItemRanking/user_stories.md",
+      title: "workitems.md",
+      source: "ItemRanking/workitems.md",
       highlights: [
         {
           label: "Coverage",
@@ -222,7 +222,7 @@
     }
   ];
 
-  var timelineDocMap = [0, 1, 2, 3, 4, 5, null];
+  var timelineDocMap = [0, 1, 4, 5, null, 2, 3];
 
   var tasksData = [
     { id: "4840164", title: "Database Schema Implementation", state: "Closed", aiUsed: true, aiType: "GITHub CoPilot", aiSavings: 4 },
@@ -425,7 +425,7 @@
       }
     });
 
-    groupedSection.appendChild(groupedTitle);
+    //groupedSection.appendChild(groupedTitle);
     groupedSection.appendChild(groupedList);
     mainList.appendChild(groupedSection);
 
